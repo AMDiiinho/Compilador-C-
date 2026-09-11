@@ -1,0 +1,13 @@
+# Artefatos gerados
+maquina_virtual
+
+# Materiais de apoio e exemplos locais
+PLANEJAMENTO.md
+planejamento/
+exemplo/
+exemplos/
+contexto/
+codigo-objeto/
+
+# Anotações locais
+maquina/TODO.txt
