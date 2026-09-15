@@ -46,8 +46,9 @@ Outros exemplos disponíveis:
 
 ## Testar o analisador léxico
 
-O teste atual lê `contexto/correto.cpp.txt` e imprime tipo, lexema, linha e
-coluna de cada token:
+O teste atual lê `contexto/correto.cpp.txt` e imprime uma lista compacta dos
+lexemas reconhecidos; `$` representa o token `FIMARQUIVO`. Linha e coluna são
+mantidas internamente em cada token para diagnósticos futuros:
 
 ```bash
 g++ -std=c++17 -Wall -Wextra -pedantic \
