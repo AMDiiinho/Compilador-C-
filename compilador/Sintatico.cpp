@@ -5,6 +5,7 @@
 #include <utility>
 #include <stdexcept>
 #include <map>
+#include <string>
 
 enum class NaoTerminal {
 
@@ -27,6 +28,61 @@ using ChaveTabela = std::pair<NaoTerminal, TipoToken>;  //Declarando ChaveTabela
                                                         //{NaoTerminal::PROG, TipoToken::INCLUDE}, espero PROG, token é #include, qual a produção?        
 
 using TabelaM = std::map<ChaveTabela, Producao>;        //Declarando a tabelaM que é um tipo map que possui uma ChaveTabela e uma Producao
+
+
+std::string token(TipoToken tipo) {
+
+    switch (tipo) {
+
+        case TipoToken::INCLUDE: return "#include";
+        case TipoToken::IOSTREAM: return "iostream";
+        case TipoToken::USING: return "using";
+        case TipoToken::NAMESPACE: return "namespace";
+        case TipoToken::STD: return "std";
+        case TipoToken::INT: return "int";
+        case TipoToken::MAIN: return "main";
+        case TipoToken::DOUBLE: return "double";
+        case TipoToken::IF: return "if";
+        case TipoToken::ELSE: return "else";
+        case TipoToken::WHILE: return "while";
+        case TipoToken::COUT: return "cout";
+        case TipoToken::ENDL: return "endl";
+        case TipoToken::LERDOUBLE: return "lerDouble";
+        case TipoToken::IDENTIFICADOR: return "id";
+        case TipoToken::NUMEROREAL: return "numero_real";
+        case TipoToken::ATRIBUICAO: return "=";
+        case TipoToken::SOMA: return "+";
+        case TipoToken::SUBTRACAO: return "-";
+        case TipoToken::MULTIPLICACAO: return "*";
+        case TipoToken::DIVISAO: return "/";
+        case TipoToken::IGUAL: return "==";
+        case TipoToken::DIFERENTE: return "!=";
+        case TipoToken::MAIOR: return ">";
+        case TipoToken::MENOR: return "<";
+        case TipoToken::MAIORIGUAL: return ">=";
+        case TipoToken::MENORIGUAL: return "<=";
+        case TipoToken::DESLOCAESQUERDA: return "<<";
+        case TipoToken::ABREPARENTESES: return "()";
+        case TipoToken::FECHAPARENTESES: return ")";
+        case TipoToken::ABRECHAVES: return "{";
+        case TipoToken::FECHACHAVES: return "}";
+        case TipoToken::VIRGULA: return ",";
+        case TipoToken::PONTOEVIRGULA: return ";";
+        case TipoToken::FIMARQUIVO: return "$";
+    }
+
+    return "Token desconhecido!";
+}
+
+std::string descricaoToken(const Token& token) {
+    if (token.tipo == TipoToken::FIMARQUIVO) {
+
+        return "$";
+    }
+
+    return "'" + token.lexema + "'";
+}
+
 
 //Declarando o método que cria a tabelaM
 TabelaM criarTabelaM() {
@@ -477,8 +533,13 @@ void Sintatico::analisar() {
 
             //se o token esperado não for do mesmo tipo do atual exemplo: PONTOEVIRGULA no topo e PONTOEVIRGULA na entrada, é um erro sintático
             if (esperado != atual.tipo) {
-                
-                throw std::runtime_error("Erro sintatico");
+                throw std::runtime_error(
+                    std::string("Erro sintatico:\n") +
+                    "linha " + std::to_string(atual.linha) +
+                    ", coluna " + std::to_string(atual.coluna) + "\n" +
+                    "encontrado " + descricaoToken(atual) +
+                    "; esperado " + token(esperado) + "."
+                );
             } 
 
             // se o token esperado for FIMARQUIVO, fim da execução
@@ -503,7 +564,12 @@ void Sintatico::analisar() {
             //se o marcador chegou ao fim da tabela foi porque não encontrou a ChaveTabela que estava procurando
             if (marcador == tabela.end()) {
                 
-                throw std::runtime_error("Erro sintatico");
+                throw std::runtime_error(
+                    std::string("Erro sintatico:\n") +
+                    "linha " + std::to_string(atual.linha) + ", coluna " + std::to_string(atual.coluna) + "\n" +
+                    "encontrado " + descricaoToken(atual) +
+                    "; \n" + "Não há produção válida!"
+                );
             }
 
             //caso o marcador tenha encontrado o par, qual a produção que essa célula da tabela indica?

@@ -1,9 +1,13 @@
 #include "SintaticoInterface.hpp"
 #include <iostream>
 
-int main() {
+int main(int argc, char* argv[]) {
     try {
-        Lexico lexico("contexto/minimo.cpp.txt");
+        const std::string caminho = argc > 1
+            ? argv[1]
+            : "contexto/correto.cpp.txt";
+
+        Lexico lexico(caminho);
         Sintatico sintatico(lexico);
 
         sintatico.analisar();
