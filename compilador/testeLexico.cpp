@@ -2,7 +2,7 @@
 #include <iostream>
 
 int main() {
-    Lexico lexico("contexto/correto.cpp.txt");
+    Lexico lexico("contexto/minimo.cpp.txt");
     bool primeiro = true;
 
     std::cout << '{';

@@ -10,10 +10,12 @@ int main(int argc, char* argv[]) {
         Lexico lexico(caminho);
         Sintatico sintatico(lexico);
 
-        sintatico.analisar();
+        Programa programa = sintatico.analisar();
 
         std::cout << "Programa valido.\n";
+        imprimirAST(programa, std::cout);
     } catch (const std::exception& erro) {
         std::cerr << "Erro: " << erro.what() << '\n';
+        return 1;
     }
 }
