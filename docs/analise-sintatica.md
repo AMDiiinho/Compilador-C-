@@ -38,9 +38,10 @@ teste.
   começam com `ε` nem `+`; `FOLLOW(OP_AD)` é `{-, id, numero_real, (}`.
 - Atualizar README e o planejamento para documentar o formato compacto do teste
   léxico e a preservação interna de linha/coluna.
-- Criar testes com fontes rastreadas para programas válidos, forma da AST,
-  precedência/associatividade e erros como `;` ausente, expressão incompleta,
-  relação ausente, `else` isolado, delimitadores incorretos e entrada após `}`.
+- Manter fontes de exemplo para validação manual de programas válidos, forma da
+  AST, precedência/associatividade e erros como `;` ausente, expressão
+  incompleta, relação ausente, `else` isolado, delimitadores incorretos e
+  entrada após `}`; não haverá suíte de testes automatizados.
 
 ## Premissas
 

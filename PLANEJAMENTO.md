@@ -109,8 +109,8 @@ g++ -std=c++17 -Wall -Wextra -pedantic \
 
 ## Etapas posteriores
 
-1. **Cobertura de testes:** automatizar casos válidos e inválidos, incluindo
-   precedência/associatividade da AST e todos os diagnósticos sintáticos.
+1. **Validação manual:** executar casos válidos e inválidos durante cada etapa,
+   conferindo a AST, a precedência/associatividade e os diagnósticos emitidos.
 2. **Semântica:** tabela `nome -> {endereço, tipo}`, detecção de uso antes de
    declaração e redeclaração.
 3. **Expressões e código:** emitir `CRCT`, `CRVL`, `SOMA`, `SUBT`, `MULT`,
@@ -119,8 +119,8 @@ g++ -std=c++17 -Wall -Wextra -pedantic \
    `while`.
 5. **Integração:** todo programa objeto começa com `INPP` e termina com
    `PARA`; o compilador só grava o `.obj` definitivo se não houver erros.
-6. **Entrega:** documentar compilação e uso, criar testes válidos e inválidos
-   e declarar o uso de IA, como exige o enunciado.
+6. **Entrega:** documentar compilação e uso, incluir exemplos manuais válidos e
+   inválidos e declarar o uso de IA, como exige o enunciado.
 
 ## Fluxo final
 
