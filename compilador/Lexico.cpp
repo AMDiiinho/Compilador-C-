@@ -96,75 +96,74 @@ Token Lexico::proximoToken() {
 
     char caractere = atual();
 
-    switch (caractere)
-    {
-    case '=':
-        avancar();
-        return {TipoToken::ATRIBUICAO, "=", linha, coluna - 1};
-        break;
+    switch (caractere) {
+        case '=':
+            avancar();
+            return {TipoToken::ATRIBUICAO, "=", linha, coluna - 1};
+            break;
 
-    case '+':
-        avancar();
-        return {TipoToken::SOMA, "+", linha, coluna - 1};
-        break;
+        case '+':
+            avancar();
+            return {TipoToken::SOMA, "+", linha, coluna - 1};
+            break;
 
-    case '-':
-        avancar();
-        return {TipoToken::SUBTRACAO, "-", linha, coluna - 1};
-        break;
+        case '-':
+            avancar();
+            return {TipoToken::SUBTRACAO, "-", linha, coluna - 1};
+            break;
 
-    case '*':
-        avancar();
-        return {TipoToken::MULTIPLICACAO, "*", linha, coluna - 1};
-        break;
+        case '*':
+            avancar();
+            return {TipoToken::MULTIPLICACAO, "*", linha, coluna - 1};
+            break;
 
-    case '/':
-        avancar();
-        return {TipoToken::DIVISAO, "/", linha, coluna - 1};
-        break;
+        case '/':
+            avancar();
+            return {TipoToken::DIVISAO, "/", linha, coluna - 1};
+            break;
 
-    case '>':
-        avancar();
-        return {TipoToken::MAIOR, ">", linha, coluna - 1};
-        break;
+        case '>':
+            avancar();
+            return {TipoToken::MAIOR, ">", linha, coluna - 1};
+            break;
 
-    case '<':
-        avancar();
-        return {TipoToken::MENOR, "<", linha, coluna - 1};
-        break;
+        case '<':
+            avancar();
+            return {TipoToken::MENOR, "<", linha, coluna - 1};
+            break;
 
-    case '(':
-        avancar();
-        return {TipoToken::ABREPARENTESES, "(", linha, coluna - 1};
-        break;
+        case '(':
+            avancar();
+            return {TipoToken::ABREPARENTESES, "(", linha, coluna - 1};
+            break;
 
 
-    case ')':
-        avancar();
-        return {TipoToken::FECHAPARENTESES, ")", linha, coluna - 1};
-        break;
+        case ')':
+            avancar();
+            return {TipoToken::FECHAPARENTESES, ")", linha, coluna - 1};
+            break;
 
-    case '{':
-        avancar();
-        return {TipoToken::ABRECHAVES, "{", linha, coluna - 1};
-        break;
+        case '{':
+            avancar();
+            return {TipoToken::ABRECHAVES, "{", linha, coluna - 1};
+            break;
 
-    case '}':
-        avancar();
-        return {TipoToken::FECHACHAVES, "}", linha, coluna - 1};
-        break;
+        case '}':
+            avancar();
+            return {TipoToken::FECHACHAVES, "}", linha, coluna - 1};
+            break;
 
-    case ',':
-        avancar();
-        return {TipoToken::VIRGULA, ",", linha, coluna - 1};
-        break;
+        case ',':
+            avancar();
+            return {TipoToken::VIRGULA, ",", linha, coluna - 1};
+            break;
 
-    case ';':
-        avancar();
-        return {TipoToken::PONTOEVIRGULA, ";", linha, coluna - 1};
-        break;
-    
-    }
+        case ';':
+            avancar();
+            return {TipoToken::PONTOEVIRGULA, ";", linha, coluna - 1};
+            break;
+        
+        }
 
     if (std::isdigit(atual())) {
         return numeroReal();
