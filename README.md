@@ -8,15 +8,14 @@ construção para a linguagem definida em `contexto/lalg-cpp.txt`. A linguagem
 
 - Máquina virtual: implementada e testada.
 - Analisador léxico: implementado e validado com `contexto/correto.cpp.txt`.
-- Analisador sintático preditivo não recursivo: próxima etapa.
+- Analisador sintático preditivo não recursivo: implementado, incluindo a
+  construção de uma árvore concreta e sua conversão para AST.
 - Análise semântica e geração de código objeto: pendentes.
 
 O roteiro técnico e os requisitos revisados estão em
 [`PLANEJAMENTO.md`](PLANEJAMENTO.md).
-Os conjuntos usados para construir o parser estão em
-[`docs/first-follow-sintatico.md`](docs/first-follow-sintatico.md).
-A tabela preditiva resultante está em
-[`docs/tabela-preditiva-sintatico.md`](docs/tabela-preditiva-sintatico.md).
+O desenho e as decisões do parser estão em
+[`docs/analise-sintatica.md`](docs/analise-sintatica.md).
 
 ## Compilar e executar a máquina virtual
 
@@ -85,6 +84,22 @@ maquina/          interpretador da MaqHipo
 codigo-objeto/    exemplos de programas objeto
 contexto/         enunciado, gramática, exemplo-fonte e slides da disciplina
 ```
+
+## Testar o analisador sintático e a AST
+
+```bash
+g++ -std=c++17 -Wall -Wextra -pedantic \
+    compilador/testeSintatico.cpp compilador/Lexico.cpp \
+    compilador/Sintatico.cpp compilador/AST.cpp compilador/ConversorAST.cpp \
+    -o sintatico
+
+./sintatico contexto/minimo.cpp.txt
+./sintatico contexto/correto.cpp.txt
+```
+
+O programa imprime a AST somente depois que a análise sintática aceita toda a
+entrada. Em caso de erro, informa a posição e encerra com código diferente de
+zero.
 
 ## Uso de IA
 
