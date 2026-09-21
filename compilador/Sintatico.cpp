@@ -1,12 +1,17 @@
 #include "SintaticoInterface.hpp"
 #include "LexicoInterface.hpp"
+#include "ConversorASTInterface.hpp"
+#include "ArvoreSintaticaInterface.hpp"
 #include <variant>
 #include <vector>
 #include <utility>
 #include <stdexcept>
 #include <map>
+#include <memory>
+#include <optional>
 #include <string>
 
+/*                     REMOVIDO POR AGORA ESTAR DECLARADA NA INTERFACE DA ARVORE CONCRETA
 enum class NaoTerminal {
 
     //Lista de não terminais existentes na gramática
@@ -18,9 +23,11 @@ enum class NaoTerminal {
 };
 
 
+
 using Simbolo = std::variant<TipoToken, NaoTerminal>;   //Declarando Simbolo, pode ser um TipoToken ou NaoTerminal
                                                         //TipoToken::INCLUDE    //terminal
                                                         //NaoTerminal::PROG     //não terminal
+*/
 
 using Producao = std::vector<Simbolo>;                  //Declarando a producao que é um vetor de elementos do tipo Simbolo
 
@@ -29,7 +36,24 @@ using ChaveTabela = std::pair<NaoTerminal, TipoToken>;  //Declarando ChaveTabela
 
 using TabelaM = std::map<ChaveTabela, Producao>;        //Declarando a tabelaM que é um tipo map que possui uma ChaveTabela e uma Producao
 
+// o item pilha liga um símbolo da gramática ao nó que o representa
+struct ItemPilha {
 
+    Simbolo simbolo;
+    No* no;
+};
+
+/* Exemplo com produção CMD -> id RESTO_IDENT
+
+    Nó:
+
+    filho(cmd, 0) -> terminal IDENTIFICADOR
+    filho(cmd, 1) -> nao terminal RESTO_IDENT
+
+    obtendo o nome do id
+
+    std::string nome = tokenNo(filho(cmd, 0)).lexema;
+*/
 std::string token(TipoToken tipo) {
 
     switch (tipo) {
@@ -493,32 +517,65 @@ TabelaM criarTabelaM() {
 //Instanciando um sintatico que recebe o lexer e guarda uma referência a ele para buscar tokens
 Sintatico::Sintatico(Lexico& lexico) : lexico(lexico) {}
 
-//implementando o método Analisar()
-void Sintatico::analisar() {
+//implementando o método Analisar() ------ ANTES DA AST -------
+//void Sintatico::analisar() {
+
+//implementando o método analisar() ------- COM A AST ---------
+Programa Sintatico::analisar() {
 
     //Criando uma tabelaM e guardando em tabela do tipo TabelaM
     TabelaM tabela = criarTabelaM();
 
+ // ------- ANTES DA AST ------------
+/*
     //declarando a pilha, vetor de simbolos
     std::vector<Simbolo> pilha;
+
 
     //empilhando fim arquivo
     pilha.push_back(TipoToken::FIMARQUIVO);
 
     //empilhando inicio do programa
     pilha.push_back(NaoTerminal::PROG);
+*/
+    // -------- COM A AST -----------
+
+    //criando o nó raiz com o No PROG
+    auto raiz = std::make_unique<No>(NaoTerminal::PROG);
+
+    //criando a pilha que é um vetor de ItemPilha que contém nós e símbolos
+    std::vector<ItemPilha> pilha;
+
+    //adicionando o fim do arquivo na pilha com ponteiro nulo
+    pilha.push_back({TipoToken::FIMARQUIVO, nullptr});
+
+    //adicionando o nó que contém PROG na pilha
+    pilha.push_back({NaoTerminal::PROG, raiz.get()});
 
     //buscando o proximo token e guardando em atual
     Token atual = lexico.proximoToken();
 
     //enquanto a pilha não estiver vazia
     while (!pilha.empty()) {
-        
+/*
+        ------ ANTES DA AST --------
+
         //guardando o valor do topo da pilha e guardando em topo do tipo Simbolo
         Simbolo topo = pilha.back();
 
         //desempilhando o topo
         pilha.pop_back();
+*/
+
+//      -------- COM A AST ----------
+
+        //para acessar o valor do topo agora, declaro item do tipo ItemPilha que tem Nó e simbolo e atribuio pilha.back() a ele
+        ItemPilha item = pilha.back();
+        //depois de atribuir o valor eu desempilho
+        pilha.pop_back();
+
+        //o topo é do tipo simbolo e é = ao item.simbolo
+        Simbolo topo = item.simbolo;
 
         // DESEMPILHO PRIMEIRO, COMPARO DEPOIS
         // se for terminal, checo se o terminal do topo e o terminal da entrada são do mesmo tipo, se não forem, é erro sintático
@@ -542,9 +599,22 @@ void Sintatico::analisar() {
                 );
             } 
 
+            // checando se o item possui um nó associado
+            if (item.no != nullptr) {
+                
+                //copio o token atual a esse nó
+                item.no->token = atual;
+            };
+
             // se o token esperado for FIMARQUIVO, fim da execução
             if (esperado == TipoToken::FIMARQUIVO) {
-                return;
+                //return;   ------- ANTES DA AST --------
+
+                // ------- COM A AST -------
+                
+                //instancio o conversor mandando converter a raíz da arvore
+                ConversorAST conversor;
+                return conversor.converter(*raiz);
             }
 
             // iterando o valor de atual para o proximoToken
@@ -558,7 +628,7 @@ void Sintatico::analisar() {
 
             //auto permite o compilador descobrir o tipo de marcador, find procura uma chave no map
             //exemplo de ChaveTabela: {NaoTerminal::PROG, TipoToken::INCLUDE} M[PROG][#include], esse par de chaves localiza a produção na tabela
-            //quando meu não terminal é PROG e meu terminal é #include, qual a regra e a produção?
+            //quando meu não terminal é PROG e meu atual.tipo é INCLUDE, qual a regra e a produção?
             auto marcador = tabela.find({naoTerminal, atual.tipo});
 
             //se o marcador chegou ao fim da tabela foi porque não encontrou a ChaveTabela que estava procurando
@@ -576,6 +646,9 @@ void Sintatico::analisar() {
             //marcador->first é a chave, second é o valor, neste caso a Producao, logo, salvo em producao do tipo Producao
             const Producao& producao = marcador->second;
 
+/*
+            ---- ANTES DA AST ------
+
             //de, rbegin() começa pelo último elemento da produção, já que empilharemos a produção ao contrário
             //até, rend() que marca o fim da iteração reversa
             //iterando simbolo
@@ -584,6 +657,21 @@ void Sintatico::analisar() {
                 //empilha o simbolo
                 pilha.push_back(*simbolo);
             }
+*/          
+//          -------- COM A AST ---------
+            //para cada simbolo em producao, crio um novo Nó e adiciono como filho do nó atual
+            for (const Simbolo& simbolo : producao) {
+                
+                item.no->filhos.push_back(std::make_unique<No>(simbolo));
+            };
+
+            //para todos os filhos do nó, empilho o simbolo de cada filho inversamente, juntamente com o ponteiro para o nó filho
+            for (auto filho = item.no->filhos.rbegin(); filho != item.no->filhos.rend(); ++filho) {
+
+                pilha.push_back({(*filho)->simbolo, filho->get()});
+            };
         }
     }
+
+    throw std::logic_error("Pilha sintatica terminou sem aceitar o programa.");
 };
