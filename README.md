@@ -17,7 +17,25 @@ As tabelas e materiais de apoio estão em `artefacts/`.
 
 ## Compilar e executar
 
+### Com CMake
+
 Na raiz do projeto:
+
+```bash
+cmake -S . -B build
+cmake --build build
+```
+
+Os executáveis serão criados em `build/exec/`:
+
+```bash
+./build/exec/compilador programas/minimo.cpp.txt minimo.obj
+./build/exec/maquina_virtual codigo-objeto/minimo.obj
+```
+
+### Com g++
+
+Como alternativa, compile diretamente com `g++`:
 
 ```bash
 mkdir -p exec
