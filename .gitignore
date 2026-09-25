@@ -1,14 +1,11 @@
 # Artefatos gerados
 maquina_virtual
-sintatico
-lexer
-lalgc
+exec/
 
 # Materiais de apoio e exemplos locais
 planejamento/
 exemplo/
 exemplos/
-contexto/
 codigo-objeto/
 
 # Anotações locais

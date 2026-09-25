@@ -1,0 +1,24 @@
+#include <iostream>
+using namespace std;
+int main() {
+    double cont;
+    double a, b, c;
+
+    cont = 10;
+
+    while (cont > 0) {
+        a = lerDouble();
+        b = lerDouble();
+
+        if (a > b) {
+            c = a - b;
+        } else {
+            c = b - a;
+        }
+
+        cout << c << endl;
+        cont = cont - 1;
+    }
+
+    cout << c << endl;
+}

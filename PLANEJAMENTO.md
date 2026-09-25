@@ -6,7 +6,7 @@ A parte 2, a máquina virtual, está implementada em `maquina/`. Ela executa
 arquivos objeto da MaqHipo, com uma instrução por linha.
 
 O analisador léxico está implementado em `compilador/` e foi validado com
-`contexto/correto.cpp.txt`. Ele reconhece todas as palavras, operadores e
+`programas/correto.cpp.txt`. Ele reconhece todas as palavras, operadores e
 delimitadores usados pela gramática, mantém linha e coluna, e termina com o
 token `FIMARQUIVO`.
 
@@ -20,16 +20,15 @@ expressões.
 
 | Material | O que define |
 | --- | --- |
-| `contexto/enunciado.txt` | Compilador com análise léxica, sintática e semântica; geração de código objeto; proibição de Lex/Flex e semelhantes. |
-| `contexto/lalg-cpp.txt` | A linguagem-fonte restrita que o compilador deve aceitar. |
-| `contexto/correto.cpp.txt` | Programa completo de referência para a validação final. |
-| `contexto/Aula04.odp` a `Aula06.odp` | FIRST, FOLLOW e análise descendente preditiva, inclusive sem recursão. |
-| `contexto/Aula10.odp` | Tabela de símbolos e ações semânticas. |
-| `contexto/Aula13.odp` | Instruções e modelo de pilha da MaqHipo. |
+| `programas/lalg-cpp.txt` | A linguagem-fonte restrita que o compilador deve aceitar. |
+| `programas/correto.cpp.txt` | Programa completo de referência para a validação final. |
+| `artefacts/first-follow-sintatico.xlsx` | Conjuntos FIRST e FOLLOW usados pelo parser. |
+| `artefacts/tabela-preditiva-sintatico.xlsx` | Tabela preditiva LL(1). |
+| `artefacts/descendente não-recursivo manual.xlsx` | Material de apoio para a técnica do parser. |
 
 ## Linguagem aceita
 
-O projeto aceita somente a linguagem descrita em `contexto/lalg-cpp.txt`, e
+O projeto aceita somente a linguagem descrita em `programas/lalg-cpp.txt`, e
 não C++ completo. Em especial:
 
 - `double` é o único tipo de variável;
@@ -48,9 +47,9 @@ Compilação e execução validadas:
 ```bash
 g++ -std=c++17 -Wall -Wextra -pedantic \
   maquina/main.cpp maquina/Maquina.cpp maquina/ConversorOperacao.cpp \
-  maquina/PilhaDados.cpp -o maquina_virtual
+  maquina/PilhaDados.cpp -o exec/maquina_virtual
 
-./maquina_virtual codigo-objeto/exemploSOMA.obj
+./exec/maquina_virtual codigo-objeto/minimo.obj
 ```
 
 ### Compilador e geração de código
@@ -67,13 +66,15 @@ Arquivos principais:
 Fluxo validado:
 
 ```bash
+mkdir -p exec
+
 g++ -std=c++17 -Wall -Wextra -pedantic \
   compilador/main.cpp compilador/Lexico.cpp compilador/Sintatico.cpp \
   compilador/AST.cpp compilador/ConversorAST.cpp \
   compilador/TabelaSimbolos.cpp compilador/Semantico.cpp \
-  compilador/GeradorCodigo.cpp -o lalgc
-./lalgc contexto/minimo.cpp.txt minimo.obj
-./maquina_virtual codigo-objeto/minimo.obj
+  compilador/GeradorCodigo.cpp -o exec/compilador
+./exec/compilador programas/minimo.cpp.txt minimo.obj
+./exec/maquina_virtual codigo-objeto/minimo.obj
 ```
 
 O compilador gera `INPP`, `ALME`, instruções para expressões, leitura, saída,
@@ -82,8 +83,8 @@ do programa completo.
 
 ## Analisador sintático e AST — concluído
 
-Os conjuntos já calculados estão em `docs/first-follow-sintatico.md` e a
-tabela resultante está em `docs/tabela-preditiva-sintatico.md`.
+Os conjuntos já calculados estão em `artefacts/first-follow-sintatico.xlsx` e
+a tabela resultante está em `artefacts/tabela-preditiva-sintatico.xlsx`.
 
 1. Transcrever a gramática para símbolos internos: terminais correspondem a
    `TipoToken`; não terminais representam `PROG`, `CMDS`, `EXPRESSAO` e os
@@ -101,18 +102,14 @@ tabela resultante está em `docs/tabela-preditiva-sintatico.md`.
 O parser reconhece programas válidos e rejeita os inválidos com posição do
 token. A conversão para AST cobre declaração, atribuição, saída, `if`/`else`,
 `while`, condições relacionais, leitura e expressões aritméticas. O exemplo
-`contexto/minimo.cpp.txt` foi mantido compatível com a gramática (declaração e
+`programas/minimo.cpp.txt` foi mantido compatível com a gramática (declaração e
 atribuição são produções distintas; não há `return`).
 
 Validação local:
 
 ```bash
-g++ -std=c++17 -Wall -Wextra -pedantic \
-  compilador/testeSintatico.cpp compilador/Lexico.cpp \
-  compilador/Sintatico.cpp compilador/AST.cpp compilador/ConversorAST.cpp \
-  -o sintatico
-./sintatico contexto/minimo.cpp.txt
-./sintatico contexto/correto.cpp.txt
+./exec/compilador programas/minimo.cpp.txt minimo.obj
+./exec/maquina_virtual codigo-objeto/minimo.obj
 ```
 
 ## Etapa atual e entrega
