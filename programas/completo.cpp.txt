@@ -1,0 +1,42 @@
+#include <iostream>
+using namespace std;
+int main() {
+    double a, b, c, d, entrada;
+
+    a = 8;
+    b = 2;
+    c = -(a + b) * b / 2;
+    d = (a + b) * (a - b) / b;
+
+    if (a / b == 4) {
+        cout << a << endl;
+    }
+
+    if (a - b != 0) {
+        cout << b << endl;
+    }
+
+    if (d >= a + b) {
+        cout << c << endl;
+    } else {
+        cout << d << endl;
+    }
+
+    if (b * 2 <= a) {
+        cout << d << endl;
+    }
+
+    if (a < b) {
+        cout << a << endl;
+    } else {
+        cout << b << endl;
+    }
+
+    while (a > 6) {
+        a = a - 1;
+    }
+
+    cout << a << endl;
+    entrada = lerDouble();
+    cout << entrada << endl;
+}
