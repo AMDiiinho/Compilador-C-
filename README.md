@@ -49,7 +49,7 @@ Compile um programa-fonte e gere o arquivo objeto:
 Execute o arquivo objeto na MaqHipo:
 
 ```bash
-./maquina_virtual minimo.obj
+./maquina_virtual codigo-objeto/minimo.obj
 ```
 
 Para o programa mínimo, a saída esperada é `2` e `3` em linhas separadas.
