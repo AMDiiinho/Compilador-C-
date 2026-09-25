@@ -53,24 +53,32 @@ g++ -std=c++17 -Wall -Wextra -pedantic \
 ./maquina_virtual codigo-objeto/exemploSOMA.obj
 ```
 
-### Analisador léxico
+### Compilador e geração de código
 
 Arquivos principais:
 
 - `compilador/TokenInterface.hpp`: tipos de token e estrutura `Token`;
 - `compilador/LexicoInterface.hpp`: interface do analisador;
 - `compilador/Lexico.cpp`: reconhecimento dos tokens;
-- `compilador/testeLexico.cpp`: programa temporário de inspeção.
+- `compilador/Semantico.cpp`: valida declarações e usos de identificadores;
+- `compilador/GeradorCodigo.cpp`: traduz a AST para instruções da MaqHipo;
+- `compilador/main.cpp`: recebe fonte e destino `.obj` na linha de comando.
 
-Teste executado:
+Fluxo validado:
 
 ```bash
 g++ -std=c++17 -Wall -Wextra -pedantic \
-  compilador/testeLexico.cpp compilador/Lexico.cpp -o lexer
-./lexer
+  compilador/main.cpp compilador/Lexico.cpp compilador/Sintatico.cpp \
+  compilador/AST.cpp compilador/ConversorAST.cpp \
+  compilador/TabelaSimbolos.cpp compilador/Semantico.cpp \
+  compilador/GeradorCodigo.cpp -o lalgc
+./lalgc contexto/minimo.cpp.txt minimo.obj
+./maquina_virtual minimo.obj
 ```
 
-O executável `lexer` é local e está ignorado pelo Git.
+O compilador gera `INPP`, `ALME`, instruções para expressões, leitura, saída,
+condições, saltos e `PARA`. A MaqHipo executou o objeto do programa mínimo e
+do programa completo.
 
 ## Analisador sintático e AST — concluído
 
@@ -107,19 +115,11 @@ g++ -std=c++17 -Wall -Wextra -pedantic \
 ./sintatico contexto/correto.cpp.txt
 ```
 
-## Etapas posteriores
+## Etapa atual e entrega
 
 1. **Validação manual:** executar casos válidos e inválidos durante cada etapa,
    conferindo a AST, a precedência/associatividade e os diagnósticos emitidos.
-2. **Semântica:** tabela `nome -> {endereço, tipo}`, detecção de uso antes de
-   declaração e redeclaração.
-3. **Expressões e código:** emitir `CRCT`, `CRVL`, `SOMA`, `SUBT`, `MULT`,
-   `DIVI`, `INVE`, `ARMZ`, `LEIT` e `IMPR`.
-4. **Controle de fluxo:** gerar `DSVF` e `DSVI` com backpatching para `if` e
-   `while`.
-5. **Integração:** todo programa objeto começa com `INPP` e termina com
-   `PARA`; o compilador só grava o `.obj` definitivo se não houver erros.
-6. **Entrega:** documentar compilação e uso, incluir exemplos manuais válidos e
+2. **Entrega:** documentar compilação e uso, incluir exemplos manuais válidos e
    inválidos e declarar o uso de IA, como exige o enunciado.
 
 ## Fluxo final
