@@ -73,7 +73,7 @@ g++ -std=c++17 -Wall -Wextra -pedantic \
   compilador/TabelaSimbolos.cpp compilador/Semantico.cpp \
   compilador/GeradorCodigo.cpp -o lalgc
 ./lalgc contexto/minimo.cpp.txt minimo.obj
-./maquina_virtual minimo.obj
+./maquina_virtual codigo-objeto/minimo.obj
 ```
 
 O compilador gera `INPP`, `ALME`, instruções para expressões, leitura, saída,

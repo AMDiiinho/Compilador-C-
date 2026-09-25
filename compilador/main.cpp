@@ -2,6 +2,7 @@
 #include "SemanticoInterface.hpp"
 #include "SintaticoInterface.hpp"
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -10,7 +11,7 @@
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
-        std::cerr << "Uso: " << argv[0] << " <fonte.cpp.txt> <programa.obj>\n";
+        std::cerr << "Uso: " << argv[0] << " <fonte.cpp.txt> <nome-programa.obj>\n";
         return 1;
     }
 
@@ -24,7 +25,11 @@ int main(int argc, char* argv[]) {
         TabelaSimbolos tabela = semantico.analisar(programa);
         const std::vector<std::string> codigo = gerador.gerar(programa, tabela);
 
-        std::ofstream arquivoObjeto(argv[2]);
+        const std::filesystem::path diretorioObjeto("codigo-objeto");
+        std::filesystem::create_directories(diretorioObjeto);
+
+        const std::filesystem::path caminhoObjeto = diretorioObjeto / argv[2];
+        std::ofstream arquivoObjeto(caminhoObjeto);
         if (!arquivoObjeto) {
             throw std::runtime_error("Nao foi possivel criar o arquivo objeto.");
         }
@@ -33,7 +38,7 @@ int main(int argc, char* argv[]) {
             arquivoObjeto << instrucao << '\n';
         }
 
-        std::cout << "Compilacao concluida: " << argv[2] << '\n';
+        std::cout << "Compilacao concluida: " << caminhoObjeto.string() << '\n';
     } catch (const std::exception& erro) {
         std::cerr << "Erro: " << erro.what() << '\n';
         return 1;
