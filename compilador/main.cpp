@@ -1,4 +1,5 @@
 #include "GeradorCodigoInterface.hpp"
+#include "GeradorArtefatosInterface.hpp"
 #include "SemanticoInterface.hpp"
 #include "SintaticoInterface.hpp"
 
@@ -22,6 +23,8 @@ int main(int argc, char* argv[]) {
         GeradorCodigo gerador;
 
         Programa programa = sintatico.analisar();
+        GeradorArtefatos geradorArtefatos;
+        const std::filesystem::path diretorioArtefatos = geradorArtefatos.gerar(argv[1], argv[2], sintatico.arvoreSintatica(), programa);
         TabelaSimbolos tabela = semantico.analisar(programa);
         const std::vector<std::string> codigo = gerador.gerar(programa, tabela);
 
@@ -39,6 +42,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "Compilacao concluida: " << caminhoObjeto.string() << '\n';
+        std::cout << "Artefatos gerados: " << diretorioArtefatos.string() << '\n';
     } catch (const std::exception& erro) {
         std::cerr << "Erro: " << erro.what() << '\n';
         return 1;
