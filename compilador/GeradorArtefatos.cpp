@@ -243,7 +243,7 @@ void gerarPngComFonteDoSistema(const std::filesystem::path& caminhoPng, Node rai
 
     const pid_t processo = fork();
     if (processo == 0) {
-        execlp("convert", "convert", "-background", "white", "-density", "144",
+        execlp("convert", "convert", "-background", "white", "-density", "72",
                caminhoSvg.c_str(), caminhoPng.c_str(), static_cast<char*>(nullptr));
         _exit(127);
     }
