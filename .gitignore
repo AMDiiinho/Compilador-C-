@@ -2,6 +2,7 @@
 maquina_virtual
 exec/
 build/
+artefatos/*-artefatos/
 
 # Materiais de apoio e exemplos locais
 planejamento/
