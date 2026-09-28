@@ -17,6 +17,7 @@ add_executable(compilador
     compilador/TabelaSimbolos.cpp
     compilador/Semantico.cpp
     compilador/GeradorCodigo.cpp
+    compilador/GeradorArtefatos.cpp
 )
 
 target_compile_options(compilador PRIVATE

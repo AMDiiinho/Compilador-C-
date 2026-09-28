@@ -517,6 +517,8 @@ TabelaM criarTabelaM() {
 //Instanciando um sintatico que recebe o lexer e guarda uma referência a ele para buscar tokens
 Sintatico::Sintatico(Lexico& lexico) : lexico(lexico) {}
 
+Sintatico::~Sintatico() = default;
+
 //implementando o método Analisar() ------ ANTES DA AST -------
 //void Sintatico::analisar() {
 
@@ -541,7 +543,7 @@ Programa Sintatico::analisar() {
     // -------- COM A AST -----------
 
     //criando o nó raiz com o No PROG
-    auto raiz = std::make_unique<No>(NaoTerminal::PROG);
+    auto raizLocal = std::make_unique<No>(NaoTerminal::PROG);
 
     //criando a pilha que é um vetor de ItemPilha que contém nós e símbolos
     std::vector<ItemPilha> pilha;
@@ -550,7 +552,7 @@ Programa Sintatico::analisar() {
     pilha.push_back({TipoToken::FIMARQUIVO, nullptr});
 
     //adicionando o nó que contém PROG na pilha
-    pilha.push_back({NaoTerminal::PROG, raiz.get()});
+    pilha.push_back({NaoTerminal::PROG, raizLocal.get()});
 
     //buscando o proximo token e guardando em atual
     Token atual = lexico.proximoToken();
@@ -613,6 +615,8 @@ Programa Sintatico::analisar() {
                 // ------- COM A AST -------
                 
                 //instancio o conversor mandando converter a raíz da arvore
+                //raizLocal aqui é necessária para a persistência da raiz para geração dos artefatos
+                raiz = std::move(raizLocal);
                 ConversorAST conversor;
                 return conversor.converter(*raiz);
             }
@@ -675,3 +679,10 @@ Programa Sintatico::analisar() {
 
     throw std::logic_error("Pilha sintatica terminou sem aceitar o programa.");
 };
+
+const No& Sintatico::arvoreSintatica() const {
+    if (!raiz) {
+        throw std::logic_error("A arvore sintatica ainda nao foi gerada.");
+    }
+    return *raiz;
+}
