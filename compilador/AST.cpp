@@ -7,6 +7,8 @@
 namespace {
 
     
+// Imprime uma linha da árvore usando o prefixo que representa a posição do nó.
+// O parâmetro ultimo define qual ramo deve ser desenhado.
 void imprimirLinha(std::ostream& saida, const std::string& prefixo, bool ultimo, const std::string& texto) {
     
     saida << prefixo << (ultimo ? "└── " : "├── ") << texto << '\n';
@@ -16,6 +18,8 @@ void imprimirLinha(std::ostream& saida, const std::string& prefixo, bool ultimo,
 
 
 
+// Monta o prefixo que será usado pelos filhos do nó atual.
+// Quando o nó é o último irmão, não é necessário prolongar a linha vertical.
 std::string prefixoFilhos(const std::string& prefixo, bool ultimo) {
     
     return prefixo + (ultimo ? "    " : "│   ");
@@ -25,6 +29,7 @@ std::string prefixoFilhos(const std::string& prefixo, bool ultimo) {
 
 
 
+// Converte o operador binário da AST para o texto usado na impressão.
 std::string nomeOperadorBinario(OperadorBinario operador) {
     switch (operador) {
         
@@ -48,6 +53,7 @@ std::string nomeOperadorBinario(OperadorBinario operador) {
 
 
 
+// Converte o operador relacional da AST para o texto usado na impressão.
 std::string nomeOperadorRelacional(OperadorRelacional operador) {
     switch (operador) {
         
@@ -77,26 +83,32 @@ std::string nomeOperadorRelacional(OperadorRelacional operador) {
 
 
 
+// Imprime uma expressão identificando o tipo concreto do nó e seus filhos.
+// A expressão pode ser um valor, uma leitura ou uma operação.
 void imprimirExpressao(const Expressao& expressao, std::ostream& saida, const std::string& prefixo, bool ultimo) {
     
+    // Identificador representa o uso de uma variável na expressão.
     if (const auto* identificador = dynamic_cast<const Identificador*>(&expressao)) {
         
         imprimirLinha(saida, prefixo, ultimo, "Identificador: " + identificador->id);
         return;
     }
 
+    // Numero representa um valor constante.
     if (const auto* numero = dynamic_cast<const Numero*>(&expressao)) {
         
         imprimirLinha(saida, prefixo, ultimo, "Numero: " + numero->valor);
         return;
     }
 
+    // Leitura representa a chamada da operação lerDouble().
     if (dynamic_cast<const Leitura*>(&expressao) != nullptr) {
         
         imprimirLinha(saida, prefixo, ultimo, "Leitura: lerDouble()");
         return;
     }
 
+    // Uma expressão unária possui apenas um filho, que é o seu operando.
     if (const auto* unaria = dynamic_cast<const ExpressaoUnaria*>(&expressao)) {
         
         imprimirLinha(saida, prefixo, ultimo, "Menos unario");
@@ -105,6 +117,7 @@ void imprimirExpressao(const Expressao& expressao, std::ostream& saida, const st
         return;
     }
 
+    // Uma expressão binária possui a expressão da esquerda e a da direita.
     if (const auto* binaria = dynamic_cast<const ExpressaoBinaria*>(&expressao)) {
         
         imprimirLinha(saida, prefixo, ultimo,"Operacao: " + nomeOperadorBinario(binaria->operador));
@@ -122,6 +135,7 @@ void imprimirExpressao(const Expressao& expressao, std::ostream& saida, const st
 
 
 
+// Imprime o operador relacional e as duas expressões comparadas.
 void imprimirCondicao(const Condicao& condicao, std::ostream& saida, const std::string& prefixo, bool ultimo) {
     
     imprimirLinha(saida, prefixo, ultimo, "Condicao: " + nomeOperadorRelacional(condicao.operador));
@@ -134,12 +148,15 @@ void imprimirCondicao(const Condicao& condicao, std::ostream& saida, const std::
 
 
 
+// Declaração antecipada usada porque imprimirComandos chama imprimirComando.
 void imprimirComando(const Comando& comando, std::ostream& saida, const std::string& prefixo, bool ultimo);
 
 
 
 
 
+// Imprime os comandos na ordem em que aparecem no programa.
+// O último comando precisa ser identificado para desenhar os ramos corretamente.
 void imprimirComandos(const std::vector<ComandoPtr>& comandos, std::ostream& saida, const std::string& prefixo) {
     
     for (std::size_t indice = 0; indice < comandos.size(); ++indice) {
@@ -152,6 +169,7 @@ void imprimirComandos(const std::vector<ComandoPtr>& comandos, std::ostream& sai
 
 
 
+// Imprime o nome de um bloco e todos os comandos que pertencem a ele.
 void imprimirBloco(const std::string& nome, const std::vector<ComandoPtr>& comandos, std::ostream& saida, const std::string& prefixo, bool ultimo) {
     
     imprimirLinha(saida, prefixo, ultimo, nome);
@@ -163,8 +181,11 @@ void imprimirBloco(const std::string& nome, const std::vector<ComandoPtr>& coman
 
 
 
+// Imprime um comando da AST de acordo com seu tipo concreto.
+// Comandos compostos também imprimem suas condições e seus blocos recursivamente.
 void imprimirComando(const Comando& comando, std::ostream& saida, const std::string& prefixo, bool ultimo) {
     
+    // Uma declaração pode conter vários identificadores no mesmo comando.
     if (const auto* declaracao = dynamic_cast<const Declaracao*>(&comando)) {
         
         std::string texto = "Declaracao:";
@@ -177,6 +198,7 @@ void imprimirComando(const Comando& comando, std::ostream& saida, const std::str
         return;
     }
 
+    // A atribuição possui o destino e a expressão cujo valor será armazenado.
     if (const auto* atribuicao = dynamic_cast<const Atribuicao*>(&comando)) {
         imprimirLinha(saida, prefixo, ultimo, "Atribuicao: " + atribuicao->destino);
         imprimirExpressao(*atribuicao->expressao, saida, prefixoFilhos(prefixo, ultimo), true);
@@ -184,12 +206,14 @@ void imprimirComando(const Comando& comando, std::ostream& saida, const std::str
         return;
     }
 
+    // Print guarda o identificador cujo valor será enviado para a saída.
     if (const auto* print = dynamic_cast<const Print*>(&comando)) {
         imprimirLinha(saida, prefixo, ultimo, "Print: " + print->id);
         
         return;
     }
 
+    // Se possui uma condição, um bloco Entao e, opcionalmente, um bloco Senao.
     if (const auto* se = dynamic_cast<const Se*>(&comando)) {
         
         imprimirLinha(saida, prefixo, ultimo, "Se");
@@ -205,6 +229,7 @@ void imprimirComando(const Comando& comando, std::ostream& saida, const std::str
         return;
     }
 
+    // Enquanto possui uma condição e um bloco Corpo que pode ser repetido.
     if (const auto* enquanto = dynamic_cast<const Enquanto*>(&comando)) {
         
         imprimirLinha(saida, prefixo, ultimo, "Enquanto");
@@ -220,6 +245,7 @@ void imprimirComando(const Comando& comando, std::ostream& saida, const std::str
 
 } // namespace
 
+// Imprime a raiz da AST e inicia a impressão dos comandos do programa.
 void imprimirAST(const Programa& programa, std::ostream& saida) {
     saida << "Programa\n";
     imprimirComandos(programa.comandos, saida, "");

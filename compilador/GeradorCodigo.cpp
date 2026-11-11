@@ -7,11 +7,14 @@ std::vector<std::string> GeradorCodigo::gerar(const Programa& programa, const Ta
 
     std::vector<std::string> codigo;
 
+    // INPP inicia a execução e ALME reserva espaço para as variáveis declaradas.
     codigo.push_back("INPP");
     codigo.push_back("ALME " + std::to_string(tabela.quantidade()));
 
+    // Os comandos são gerados na mesma ordem em que aparecem no programa.
     gerarComandos(programa.comandos, tabela, codigo);
 
+    // PARA encerra a execução da máquina após o último comando.
     codigo.push_back("PARA");
 
     return codigo;
@@ -20,6 +23,7 @@ std::vector<std::string> GeradorCodigo::gerar(const Programa& programa, const Ta
 
 
 
+// Gera o código de cada comando pertencente a um bloco.
 void GeradorCodigo::gerarComandos(const std::vector<ComandoPtr>& comandos, const TabelaSimbolos& tabela, std::vector<std::string>& codigo) {
 
     for (const ComandoPtr& comando : comandos) {
@@ -32,13 +36,16 @@ void GeradorCodigo::gerarComandos(const std::vector<ComandoPtr>& comandos, const
 
 
 
+// Traduz um comando da AST para uma ou mais instruções da MaqHipo.
 void GeradorCodigo::gerarComando(const Comando& comando, const TabelaSimbolos& tabela, std::vector<std::string>& codigo) {
 
+    // A declaração já foi registrada na tabela de símbolos e não gera instrução.
     if (dynamic_cast<const Declaracao*>(&comando) != nullptr) {
 
         return;
     }
 
+    // Primeiro calcula a expressão e depois armazena o resultado no destino.
     if (const auto* atribuicao = dynamic_cast<const Atribuicao*>(&comando)) {
 
         gerarExpressao(*atribuicao->expressao, tabela, codigo);
@@ -50,6 +57,7 @@ void GeradorCodigo::gerarComando(const Comando& comando, const TabelaSimbolos& t
     }
 
 
+    // CRVL carrega o valor da variável e IMPR envia esse valor para a saída.
     if (const auto* impressao = dynamic_cast<const Print*>(&comando)) {
 
         const int endereco = tabela.obter(impressao->id).endereco;
@@ -59,10 +67,12 @@ void GeradorCodigo::gerarComando(const Comando& comando, const TabelaSimbolos& t
         return;
     }
 
+    // A condição deixa um valor lógico na pilha para DSVF testar.
     if (const auto* se = dynamic_cast<const Se*>(&comando)) {
 
         gerarCondicao(se->condicao, tabela, codigo);
 
+        // O destino do salto falso será preenchido após a geração do bloco Entao.
         const std::size_t saltoFalso = codigo.size();
         codigo.push_back("DSVF 0");
 
@@ -70,10 +80,12 @@ void GeradorCodigo::gerarComando(const Comando& comando, const TabelaSimbolos& t
 
         if (se->senao.empty()) {
 
+            // Sem Senao, o salto aponta diretamente para a próxima instrução.
             gerarSalto(codigo, saltoFalso, codigo.size());
             return;
         };
 
+        // Com Senao, o fluxo verdadeiro precisa saltar por cima desse bloco.
         const std::size_t saltoFim = codigo.size();
         codigo.push_back("DSVI 0");
 
@@ -86,12 +98,14 @@ void GeradorCodigo::gerarComando(const Comando& comando, const TabelaSimbolos& t
     };
 
 
+    // O laço retorna ao seu início enquanto a condição continuar verdadeira.
     if (const auto* enquanto = dynamic_cast<const Enquanto*>(&comando)) {
 
         const std::size_t inicio = codigo.size();
 
         gerarCondicao(enquanto->condicao, tabela, codigo);
 
+        // O destino do salto falso será definido depois que o corpo for gerado.
         const std::size_t saltoFim = codigo.size();
         codigo.push_back("DSVF 0");
 
@@ -108,8 +122,10 @@ void GeradorCodigo::gerarComando(const Comando& comando, const TabelaSimbolos& t
 
 
 
+// Traduz uma expressão e deixa o seu resultado no topo da pilha de dados.
 void GeradorCodigo::gerarExpressao(const Expressao& expressao, const TabelaSimbolos& tabela, std::vector<std::string>& codigo) {
 
+    // Constantes são carregadas diretamente para a pilha.
     if (const auto* numero = dynamic_cast<const Numero*>(&expressao)) {
 
         codigo.push_back("CRCT " + numero->valor);
@@ -117,6 +133,7 @@ void GeradorCodigo::gerarExpressao(const Expressao& expressao, const TabelaSimbo
     };
 
 
+    // A tabela de símbolos informa o endereço da variável na memória.
     if (const auto* identificador = dynamic_cast<const Identificador*>(&expressao)) {
 
         const int endereco = tabela.obter(identificador->id).endereco;
@@ -125,6 +142,7 @@ void GeradorCodigo::gerarExpressao(const Expressao& expressao, const TabelaSimbo
     };
 
 
+    // LEIT lê um valor e o coloca no topo da pilha.
     if (dynamic_cast<const Leitura*> (&expressao) != nullptr) {
 
         codigo.push_back("LEIT");
@@ -133,6 +151,7 @@ void GeradorCodigo::gerarExpressao(const Expressao& expressao, const TabelaSimbo
 
 
 
+    // O operando é calculado primeiro; INVE então inverte o seu sinal.
     if (const auto* unaria = dynamic_cast<const ExpressaoUnaria*>(&expressao)) {
 
         gerarExpressao(*unaria->operando, tabela, codigo);
@@ -143,11 +162,13 @@ void GeradorCodigo::gerarExpressao(const Expressao& expressao, const TabelaSimbo
 
 
 
+    // As duas expressões são avaliadas antes da operação binária.
     if (const auto* binaria = dynamic_cast<const ExpressaoBinaria*>(&expressao)) {
 
         gerarExpressao(*binaria->esquerda, tabela, codigo);
         gerarExpressao(*binaria->direita, tabela, codigo);
 
+        // Cada operador binário possui uma instrução correspondente na MaqHipo.
         switch (binaria->operador){
 
             case OperadorBinario::Soma:
@@ -174,11 +195,14 @@ void GeradorCodigo::gerarExpressao(const Expressao& expressao, const TabelaSimbo
 
 
 
+// Gera as instruções que comparam as duas expressões de uma condição.
 void GeradorCodigo::gerarCondicao(const Condicao& condicao, const TabelaSimbolos& tabela, std::vector<std::string>& codigo) {
 
+    // As expressões deixam seus valores na pilha para a comparação consumir.
     gerarExpressao(*condicao.esquerda, tabela, codigo);
     gerarExpressao(*condicao.direita, tabela, codigo);
 
+    // A instrução escolhida depende do operador relacional da condição.
     switch (condicao.operador) {
     
         case OperadorRelacional::Igual:
@@ -219,6 +243,8 @@ void GeradorCodigo::gerarCondicao(const Condicao& condicao, const TabelaSimbolos
 
 
 
+// Substitui o destino provisório de um salto pelo endereço real da instrução.
+// O salto é criado antes porque o tamanho do bloco ainda não é conhecido.
 void GeradorCodigo::gerarSalto(std::vector<std::string>& codigo, std::size_t indice, std::size_t destino) {
 
     const std::string instrucao = codigo.at(indice).substr(0, codigo.at(indice).find(' '));
