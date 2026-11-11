@@ -104,5 +104,4 @@ exec/             executáveis locais gerados pela compilação
 ## Uso de IA
 
 O desenvolvimento teve assistência do OpenAI Codex para explicações,
-revisões de código e apoio à documentação. O entendimento, a implementação e
-a apresentação do trabalho permanecem sob responsabilidade do aluno.
+revisões de código e apoio à documentação.
