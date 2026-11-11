@@ -8,8 +8,6 @@
 #include <fstream>
 #include <stdexcept>
 #include <string>
-#include <sys/wait.h>
-#include <unistd.h>
 #include <utility>
 #include <vector>
 
@@ -186,75 +184,10 @@ std::string labelVisivel(const std::string& label) {
 void text(Canvas& c, int x, int y, const std::string& s) { for (char ch : s) { const auto* g = glyph(ch); for (int row = 0; row < 7; ++row) for (int col = 0; col < 5; ++col) if (g[row] & (1 << (4 - col))) for (int yy = 0; yy < 2; ++yy) for (int xx = 0; xx < 2; ++xx) c.dot(x + col * 2 + xx, y + row * 2 + yy, 25, 42, 58); x += 12; } }
 void draw(Canvas& c, const Node& n) { const int x = n.x * 180 + 90; const int y = n.y * 74 + 32; for (const auto& child : n.children) { const int childX = child.x * 180 + 90; const int childY = child.y * 74 + 32; line(c, x, y + 16, childX, childY - 16); draw(c, child); } for (int yy = y - 16; yy <= y + 16; ++yy) for (int xx = x - 83; xx <= x + 83; ++xx) if (xx == x - 83 || xx == x + 83 || yy == y - 16 || yy == y + 16) c.dot(xx, yy, 35, 99, 140); text(c, x - 78, y - 7, labelVisivel(n.label)); }
 uint32_t crc(const unsigned char* p,size_t n){uint32_t x=0xffffffff;for(size_t i=0;i<n;++i){x^=p[i];for(int j=0;j<8;++j)x=(x>>1)^(0xedb88320u&-(x&1));}return ~x;} void be(std::ofstream&o,uint32_t x){for(int s=24;s>=0;s-=8)o.put(static_cast<char>(x>>s));} void chunk(std::ofstream&o,const char* type,const std::vector<unsigned char>&d){be(o,d.size());o.write(type,4);if(!d.empty())o.write(reinterpret_cast<const char*>(d.data()),d.size());std::vector<unsigned char> c(type,type+4);c.insert(c.end(),d.begin(),d.end());be(o,crc(c.data(),c.size()));}
-[[maybe_unused]] void png(const std::filesystem::path& path, Node root) { int leaves=0,depth=0;layout(root,0,leaves,depth); Canvas c(std::max(800,leaves*180),std::max(120,(depth+1)*74+50));draw(c,root);std::vector<unsigned char> raw;raw.reserve(static_cast<size_t>(c.h)*(c.w*3+1));for(int y=0;y<c.h;++y){raw.push_back(0);raw.insert(raw.end(),c.px.begin()+static_cast<size_t>(y)*c.w*3,c.px.begin()+static_cast<size_t>(y+1)*c.w*3);}std::vector<unsigned char> z={120,1};for(size_t off=0;off<raw.size();){size_t n=std::min<size_t>(65535,raw.size()-off);z.push_back(off+n==raw.size()?1:0);z.push_back(n&255);z.push_back(n>>8);auto nn=static_cast<unsigned short>(~n);z.push_back(nn&255);z.push_back(nn>>8);z.insert(z.end(),raw.begin()+off,raw.begin()+off+n);off+=n;}uint32_t a=1,b=0;for(auto v:raw){a=(a+v)%65521;b=(b+a)%65521;}for(int s=24;s>=0;s-=8)z.push_back(static_cast<unsigned char>(((b<<16)|a)>>s));std::ofstream o(path,std::ios::binary);if(!o)throw std::runtime_error("Nao foi possivel criar " + path.string());o.write("\x89PNG\r\n\x1a\n",8);std::vector<unsigned char> ihdr(13);ihdr[3]=c.w;ihdr[2]=c.w>>8;ihdr[1]=c.w>>16;ihdr[0]=c.w>>24;ihdr[7]=c.h;ihdr[6]=c.h>>8;ihdr[5]=c.h>>16;ihdr[4]=c.h>>24;ihdr[8]=8;ihdr[9]=2;chunk(o,"IHDR",ihdr);chunk(o,"IDAT",z);chunk(o,"IEND",{}); }
+void png(const std::filesystem::path& path, Node root) { int leaves=0,depth=0;layout(root,0,leaves,depth); Canvas c(std::max(800,leaves*180),std::max(120,(depth+1)*74+50));draw(c,root);std::vector<unsigned char> raw;raw.reserve(static_cast<size_t>(c.h)*(c.w*3+1));for(int y=0;y<c.h;++y){raw.push_back(0);raw.insert(raw.end(),c.px.begin()+static_cast<size_t>(y)*c.w*3,c.px.begin()+static_cast<size_t>(y+1)*c.w*3);}std::vector<unsigned char> z={120,1};for(size_t off=0;off<raw.size();){size_t n=std::min<size_t>(65535,raw.size()-off);z.push_back(off+n==raw.size()?1:0);z.push_back(n&255);z.push_back(n>>8);auto nn=static_cast<unsigned short>(~n);z.push_back(nn&255);z.push_back(nn>>8);z.insert(z.end(),raw.begin()+off,raw.begin()+off+n);off+=n;}uint32_t a=1,b=0;for(auto v:raw){a=(a+v)%65521;b=(b+a)%65521;}for(int s=24;s>=0;s-=8)z.push_back(static_cast<unsigned char>(((b<<16)|a)>>s));std::ofstream o(path,std::ios::binary);if(!o)throw std::runtime_error("Nao foi possivel criar " + path.string());o.write("\x89PNG\r\n\x1a\n",8);std::vector<unsigned char> ihdr(13);ihdr[3]=c.w;ihdr[2]=c.w>>8;ihdr[1]=c.w>>16;ihdr[0]=c.w>>24;ihdr[7]=c.h;ihdr[6]=c.h>>8;ihdr[5]=c.h>>16;ihdr[4]=c.h>>24;ihdr[8]=8;ihdr[9]=2;chunk(o,"IHDR",ihdr);chunk(o,"IDAT",z);chunk(o,"IEND",{}); }
 
-std::string escaparXml(const std::string& texto) {
-    std::string resultado;
-    for (const char caractere : texto) {
-        switch (caractere) {
-            case '&': resultado += "&amp;"; break;
-            case '<': resultado += "&lt;"; break;
-            case '>': resultado += "&gt;"; break;
-            case '"': resultado += "&quot;"; break;
-            default: resultado += caractere; break;
-        }
-    }
-    return resultado;
-}
-
-void escreverNoSvg(std::ostream& saida, const Node& no) {
-    constexpr int espacamentoHorizontal = 240;
-    constexpr int espacamentoVertical = 90;
-    constexpr int larguraNo = 220;
-    constexpr int alturaNo = 38;
-    const int x = no.x * espacamentoHorizontal + espacamentoHorizontal / 2;
-    const int y = no.y * espacamentoVertical + 35;
-
-    for (const Node& filho : no.children) {
-        const int xFilho = filho.x * espacamentoHorizontal + espacamentoHorizontal / 2;
-        const int yFilho = filho.y * espacamentoVertical + 35;
-        saida << "<line stroke=\"#607080\" stroke-width=\"1.5\" x1=\"" << x << "\" y1=\"" << y + alturaNo / 2
-              << "\" x2=\"" << xFilho << "\" y2=\"" << yFilho - alturaNo / 2
-              << "\" />\n";
-        escreverNoSvg(saida, filho);
-    }
-
-    saida << "<rect fill=\"#f7fbff\" stroke=\"#23638c\" x=\"" << x - larguraNo / 2 << "\" y=\"" << y - alturaNo / 2
-          << "\" width=\"" << larguraNo << "\" height=\"" << alturaNo << "\" />\n"
-          << "<text font-family=\"DejaVu Sans Mono\" font-size=\"14\" fill=\"#192a3a\" text-anchor=\"middle\" x=\"" << x << "\" y=\"" << y + 5 << "\">"
-          << escaparXml(no.label) << "</text>\n";
-}
-
-void gerarPngComFonteDoSistema(const std::filesystem::path& caminhoPng, Node raiz) {
-    int folhas = 0;
-    int profundidade = 0;
-    layout(raiz, 0, folhas, profundidade);
-
-    const std::filesystem::path caminhoSvg = caminhoPng.parent_path() /
-                                             (caminhoPng.stem().string() + ".tmp.svg");
-    std::ofstream svg(caminhoSvg);
-    if (!svg) throw std::runtime_error("Nao foi possivel criar a arvore temporaria.");
-
-    svg << "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"" << std::max(900, folhas * 240)
-        << "\" height=\"" << std::max(160, (profundidade + 1) * 90 + 50) << "\">\n";
-    escreverNoSvg(svg, raiz);
-    svg << "</svg>\n";
-    svg.close();
-
-    const pid_t processo = fork();
-    if (processo == 0) {
-        execlp("convert", "convert", "-background", "white", "-density", "72",
-               caminhoSvg.c_str(), caminhoPng.c_str(), static_cast<char*>(nullptr));
-        _exit(127);
-    }
-    if (processo < 0) throw std::runtime_error("Nao foi possivel iniciar o conversor de imagens.");
-
-    int status = 0;
-    waitpid(processo, &status, 0);
-    std::filesystem::remove(caminhoSvg);
-    if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-        throw std::runtime_error("Nao foi possivel gerar o PNG da arvore. O ImageMagick e necessario.");
-    }
+void gerarPng(const std::filesystem::path& caminhoPng, Node raiz) {
+    png(caminhoPng, std::move(raiz));
 }
 }
 
@@ -277,7 +210,7 @@ std::filesystem::path GeradorArtefatos::gerar(const std::string& caminhoFonte,
         out << tipoToken(token.tipo) << " | " << token.lexema
             << " | linha " << token.linha << ", coluna " << token.coluna << '\n';
     }
-    gerarPngComFonteDoSistema(dir / "arvore-sintatica.png", concreto(arvoreSintatica));
-    gerarPngComFonteDoSistema(dir / "ast.png", abstrata(ast));
+    gerarPng(dir / "arvore-sintatica.png", concreto(arvoreSintatica));
+    gerarPng(dir / "ast.png", abstrata(ast));
     return dir;
 }

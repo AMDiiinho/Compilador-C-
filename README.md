@@ -15,6 +15,9 @@ O roteiro técnico e os requisitos revisados estão em
 [`PLANEJAMENTO.md`](PLANEJAMENTO.md).
 As tabelas e materiais de apoio estão em `artefacts/`.
 
+A geração dos artefatos visuais é feita pelo próprio compilador e não depende
+do ImageMagick ou de outro conversor externo.
+
 ## Compilar e executar
 
 ### Com CMake
